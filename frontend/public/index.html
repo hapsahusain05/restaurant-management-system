@@ -1,1 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Management</h1>
+
+    <!-- Form to Add a New User -->
+    <form id="userForm">
+        <h2>Add New User</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <button type="submit">Add User</button>
+    </form>
+
+    <!-- Table to Display Users -->
+    <h2>Users List</h2>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // URL of the API
+        const apiUrl = '/api/users';
+
+        // Function to fetch users and update the table
+        function fetchUsers() {
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#userTable tbody');
+                    tableBody.innerHTML = ''; // Clear existing rows
+                    data.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.id}</td>
+                            <td>${user.name}</td>
+                            <td>${user.email}</td>
+                            <td>
+                                <button onclick="deleteUser(${user.id})">Delete</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+
+        // Function to handle form submission
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email }),
+            })
+            .then(response => {
+                if (response.ok) {
+                    fetchUsers(); // Refresh the user list
+                    document.getElementById('userForm').reset(); // Clear the form
+                } else {
+                    alert('Error adding user');
+                }
+            })
+            .catch(error => console.error('Error adding user:', error));
+        });
+
+        // Function to delete a user
+        function deleteUser(userId) {
+            fetch(`${apiUrl}/${userId}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (response.ok) {
+                    fetchUsers(); // Refresh the user list
+                } else {
+                    alert('Error deleting user');
+                }
+            })
+            .catch(error => console.error('Error deleting user:', error));
+        }
+
+        // Initial fetch of users
+        fetchUsers();
+    </script>
+</body>
+</html>
 
